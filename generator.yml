@@ -1,0 +1,313 @@
+modules:
+#System details and interface stats OID's are common for both Cisco and Juniper
+  ifmib:
+    walk:
+      - 1.3.6.1.2.1.1.3  #System UPtime
+      - 1.3.6.1.2.1.1.1  #System Descriptio
+      - 1.3.6.1.2.1.31.1.1.1.6 #ifHCInOctets
+      - 1.3.6.1.2.1.31.1.1.1.10 #ifHCOutOctets
+      - 1.3.6.1.2.1.2.2.1.13 #ifInDiscards
+      - 1.3.6.1.2.1.2.2.1.14 #ifInErrors
+      - 1.3.6.1.2.1.2.2.1.19 #ifOutDiscards
+      - 1.3.6.1.2.1.2.2.1.20 #ifOutErrors
+      - 1.3.6.1.2.1.31.1.1.1.15 #ifHighSpeed
+      - 1.3.6.1.2.1.31.1.1.1.7 #ifHCInUcastPkts
+      - 1.3.6.1.2.1.31.1.1.1.11 #ifHCOutUcastPkts
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [ifIndex]
+        lookup: ifAlias
+        drop_source_indexes: true
+      - source_indexes: [ifIndex]
+        lookup: ifName
+        drop_source_indexes: true
+
+# freeMem is common for both cisco ASR and Cisco 3750/3850 but cisco ASR has more detailed OID;s which are used in next module
+  cisco:
+    walk:
+      - 1.3.6.1.4.1.9.2.1.8 #freeMem
+      - 1.3.6.1.4.1.9.9.109.1.1.1.1.7 #cpmCPUTotal1min
+      - 1.3.6.1.4.1.9.2.1.35 #bufferBgMiss
+      - 1.3.6.1.4.1.9.2.1.67 #bufferHgMiss
+      - 1.3.6.1.4.1.9.2.1.43 #bufferLgMiss
+      - 1.3.6.1.4.1.9.2.1.27 #bufferMdMiss
+      - 1.3.6.1.4.1.9.2.1.19 #bufferSmMiss
+      - 1.3.6.1.4.1.9.9.48.1.1.1.5 #ciscoMemoryPoolUsed
+      - 1.3.6.1.4.1.9.9.48.1.1.1.6 #ciscoMemoryPoolFree
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [cpmCPUTotalIndex]
+        lookup: entPhysicalName
+        drop_source_indexes: true
+      - source_indexes: [ciscoMemoryPoolType]
+        lookup: ciscoMemoryPoolName
+        drop_source_indexes: true
+
+# Cisco 3750 environment status and Switch stack status, same can be used for Cisco 3850
+  cisco3750:
+    walk:
+      - 1.3.6.1.4.1.9.9.13.1.3.1.3 #ciscoEnvMonTemperatureStatusValue
+      - 1.3.6.1.4.1.9.9.13.1.4.1.3 #ciscoEnvMonFanState
+      - 1.3.6.1.4.1.9.9.13.1.5.1.3 #ciscoEnvMonSupplyState
+      - 1.3.6.1.4.1.9.9.500.1.1.3  #cswRingRedundant
+      - 1.3.6.1.4.1.9.9.500.1.2.2.1.1 #cswStackPortOperStatus
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [ciscoEnvMonTemperatureStatusIndex]
+        lookup:  ciscoEnvMonTemperatureStatusDescr
+        drop_source_indexes: true
+      - source_indexes: [ciscoEnvMonFanStatusIndex]
+        lookup:  ciscoEnvMonFanStatusDescr
+        drop_source_indexes: true
+      - source_indexes: [ciscoEnvMonFanStatusIndex]
+        lookup:  ciscoEnvMonFanStatusDescr
+        drop_source_indexes: true
+#    overrides:
+#        ciscoEnvMonFanState:
+#          type: EnumAsInfo
+#        ciscoEnvMonSupplyState:
+#          type: EnumAsInfo
+#        cswStackPortOperStatus:
+#          type: EnumAsInfo
+
+  ciscoasrenv:
+    walk:
+      - 1.3.6.1.4.1.9.9.91.1.1.1.1.4 #entSensorValue
+      - 1.3.6.1.4.1.9.9.91.1.1.1.1.5 #entSensorStatus
+      - 1.3.6.1.4.1.9.9.109.1.1.1.1.12 #cpmCPUMemoryUsed
+      - 1.3.6.1.4.1.9.9.109.1.1.1.1.13 #cpmCPUMemoryFree
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [entPhysicalIndex]
+        lookup:  entPhysicalName
+        drop_source_indexes: true
+      - source_indexes: [entPhysicalIndex, cpmCPUTotalPhysicalIndex]
+        lookup:  entPhysicalName
+        drop_source_indexes: true
+
+  juniper:
+    walk:
+      - 1.3.6.1.4.1.2636.3.1.13.1.6 #jnxOperatingState
+      - 1.3.6.1.4.1.2636.3.1.13.1.7 #jnxOperatingTemp
+      - 1.3.6.1.4.1.2636.3.1.13.1.8 #jnxOperatingCPU
+      - 1.3.6.1.4.1.2636.3.1.13.1.15 #jnxOperatingMemory
+      - 1.3.6.1.4.1.2636.3.1.13.1.11 #jnxOperatingBuffer
+      - 1.3.6.1.4.1.2636.3.1.13.1.12 #jnxOperatingHeap
+      - 1.3.6.1.4.1.2636.3.1.13.1.20 #jnxOperating1MinLoadAvg
+     # - 1.3.6.1.2.1.25.2.3.1.5 #hrStorageSize
+     # - 1.3.6.1.2.1.25.2.3.1.6 #hrStorageUsed
+     # - jnxVirtualChassisPortOperStatus
+     # - 1.3.6.1.4.1.2636.3.40.1.4.1.2.1.4 #jnxVirtualChassisPortOperStatus
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [jnxOperatingContentsIndex, jnxOperatingL1Index, jnxOperatingL2Index, jnxOperatingL3Index]
+        lookup: jnxOperatingDescr
+        drop_source_indexes: false
+#    overrides:
+#        jnxOperatingState:
+#          type: EnumAsInfo
+     # - source_indexes: [hrStorageTable]
+     #   lookup:  hrStorageDescr
+     #   drop_source_indexes: true
+
+  rpm:
+    walk:
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.16 #jnxPingLastTestResultPeakToPeakJitterRttUs
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.6 #jnxPingLastTestResultAvgRttUs
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.5 #jnxPingLastTestResultMaxRttU
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.4 #jnxPingLastTestResultMinRttUs
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.2 #jnxPingLastTestResultSentProbes
+      - 1.3.6.1.4.1.2636.3.7.1.5.1.1 #jnxPingLastTestResultProbeResponses
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [jnxRpmResultsCalculatedTable]
+        lookup: jnxPingResultsTestName
+        drop_source_indexes: true
+      - source_indexes: [jnxRpmResultsCalculatedTable]
+        lookup: jnxPingCtlTestName
+        drop_source_indexes: true
+
+  ipsla:
+    walk:
+      - 1.3.6.1.4.1.9.9.42.1.2.10.1.1 #rttMonLatestRTTOperCompletionTime
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.4 #rttMonLatestJitterOperRTTMin
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.5 #rttMonLatestJitterOperRTTMax
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.26 #rttMonLatestJitterOperPacketLossSD
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.27 #rttMonLatestJitterOperPacketLossDS
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.28 #rttMonLatestJitterOperPacketOutOfSequence
+      - 1.3.6.1.4.1.9.9.42.1.5.2.1.29 #rttMonLatestJitterOperPacketMIA
+      - 1.3.6.1.4.1.9.9.42.1.3.5.1.38 #rttMonJitterStatsPacketLateArrival
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [rttMonCtrlAdminIndex]
+        lookup: rttMonCtrlAdminTag
+        drop_source_indexes: true
+
+  bgp:
+    walk:
+      - 1.3.6.1.2.1.15.3.1.2 #bgpPeerState
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [bgpPeerTable]
+        lookup: bgpPeerIdentifier
+        drop_source_indexes: true
+#    overrides:
+#        bgpPeerState:
+#          type: EnumAsInfo
+
+  juniperbgp:
+    walk:
+      - 1.3.6.1.4.1.2636.5.1.1.2.6.2.1.7 #jnxBgpM2PrefixInPrefixes
+      - 1.3.6.1.4.1.2636.5.1.1.2.6.2.1.10 #jnxBgpM2PrefixOutPrefixes
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [jnxBgpM2PeerIdentifier]
+        lookup: jnxBgpM2PeerRemoteAddr
+        drop_source_indexes: false
+      - source_indexes: [jnxBgpM2PeerIndex]
+        lookup: jnxBgpM2PeerRemoteAs
+        drop_source_indexes: false
+      - source_indexes: [jnxBgpM2PeerIndex]
+        lookup: jnxBgpM2PeerIdentifier
+        drop_source_indexes: false
+
+  ciscobgp:
+    walk:
+      - 1.3.6.1.4.1.9.9.187.1.2.4.1.1 #cbgpPeerAcceptedPrefixes
+      - 1.3.6.1.4.1.9.9.187.1.2.4.1.6 #cbgpPeerAdvertisedPrefixes
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [cbgpPeer2Table]
+        lookup: cbgpPeer2RemoteIdentifier
+        drop_source_indexes: true
+      - source_indexes: [cbgpPeer2Table]
+        lookup: cbgpPeer2RemoteAs
+        drop_source_indexes: true
+
+  horizontalpdu:
+    walk:
+      - 1.3.6.1.4.1.1718.3.2.2.1.3 #infeedName
+      - 1.3.6.1.4.1.1718.3.2.2.1.8 #infeedLoadHighThresh
+      - 1.3.6.1.4.1.1718.3.2.2.1.10 #infeedCapacity
+      - 1.3.6.1.4.1.1718.3.2.2.1.11 #infeedVoltage
+      - 1.3.6.1.4.1.1718.3.2.2.1.12 #infeedPower
+      - 1.3.6.1.4.1.1718.3.2.2.1.20 #infeedCapacityUsed
+      - 1.3.6.1.4.1.1718.3.2.2.1.24 #infeedVACapacity
+      - 1.3.6.1.4.1.1718.3.2.2.1.25 #infeedVACapacityUsed
+      - 1.3.6.1.4.1.1718.3.2.2.1.7 #infeedLoadValue
+      - 1.3.6.1.4.1.1718.3.2.2.1.12 #infeedPower
+
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+
+
+  verizontalpdu:
+    walk:
+#      - 1.3.6.1.4.1.1718.4.1.3.1.1 #st4InputCordActivePowerHysteresis
+#      - 1.3.6.1.4.1.1718.4.1.3.1.2 #st4InputCordApparentPowerHysteresis
+#      - 1.3.6.1.4.1.1718.4.1.3.1.3 #st4InputCordPowerFactorHysteresis
+      - 1.3.6.1.4.1.1718.4.1.3.3.1.3 #st4InputCordActivePower #watts
+      - 1.3.6.1.4.1.1718.4.1.3.3.1.5 #st4InputCordApparentPowe #Volts-amps
+      - 1.3.6.1.4.1.1718.4.1.3.3.1.7 #st4InputCordPowerUtilized
+      - 1.3.6.1.4.1.1718.4.1.3.3.1.8 #st4InputCordPowerFactor
+      - 1.3.6.1.4.1.1718.4.1.4.2.1.6 #st4LineCurrentCapacity
+      - 1.3.6.1.4.1.1718.4.1.4.3.1.5 #st4LineCurrentUtilized
+      - 1.3.6.1.4.1.1718.4.1.5.3.1.3 #st4PhaseVoltage
+      - 1.3.6.1.4.1.1718.4.1.5.3.1.5 #st4PhaseVoltageDeviation
+      - 1.3.6.1.4.1.1718.4.1.5.3.1.6 #st4PhaseCurrent
+      - 1.3.6.1.4.1.1718.4.1.5.3.1.8 #st4PhaseActivePower
+      - 1.3.6.1.4.1.1718.4.1.5.3.1.9 #st4PhaseApparentPower
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
