@@ -1,0 +1,211 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 1m # Evaluate rules every 15 seconds. The default is every 1 minute.
+  external_labels:
+    region: eu-west
+    monitor: infrastructure
+    replica: B
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       - 127.0.0.1:9093
+
+rule_files:
+   - "status.yml"
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'all_default'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/all_default.json
+    #static_configs:
+    # - targets: ['core1.sjc2','core1.del2']
+    metrics_path: /snmp
+    params:
+      module: [ifmib]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'cisco_default'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/cisco_default.json
+    #static_configs:
+    # - targets: ['core1.sjc2','core1.del2']
+    metrics_path: /snmp
+    params:
+      module: [cisco]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'cisco_3750'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/cisco_3750.json
+    #static_configs:
+    # - targets: ['core1.sjc2','core1.del2']
+    metrics_path: /snmp
+    params:
+      module: [cisco3750]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'cisco_asr'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/cisco_asr.json
+    metrics_path: /snmp
+    params:
+      module: [ciscoasrenv]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'juniper_default'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/juniper_default.json
+    metrics_path: /snmp
+    params:
+      module: [juniper]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'cisco_ipsla'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/cisco_asr.json
+    metrics_path: /snmp
+    params:
+      module: [ipsla]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'juniper_rpm'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/juniper_rtr.json
+    metrics_path: /snmp
+    params:
+      module: [rpm]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'bgp'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/juniper_rtr.json
+          - /opt/prometheus/prometheus/targets/cisco_asr.json
+    metrics_path: /snmp
+    params:
+      module: [bgp]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'juniperbgp'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/juniper_rtr.json
+    metrics_path: /snmp
+    params:
+      module: [juniperbgp]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
+
+  - job_name: 'ciscobgp'
+    scrape_interval: 60s
+    scrape_timeout: 60s
+    file_sd_configs:
+        - files :
+          - /opt/prometheus/prometheus/targets/cisco_asr.json
+    metrics_path: /snmp
+    params:
+      module: [ciscobgp]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [dc]
+        target_label: __address__
+        replacement: 'server50.$1:9116'
