@@ -1,4 +1,4 @@
-# prometheus_config
+# Prometheus Config
 Prometheus config file for Cisco and Juniper network device monitoring.
 alert_rules file contains the common alert rules used for cisco and juniper devices.
 generator.yml used for generating snmp.yml file for snmp_exporter..
