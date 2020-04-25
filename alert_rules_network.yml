@@ -1,0 +1,570 @@
+groups:
+- name: Device rules
+  rules:
+  - record: job:ifHCOutOctets:rate5m
+    expr: rate(ifHCOutOctets{ifAlias=~"edge.*|core.*"}[5m])
+
+  - record: job:ifHCInOctets:rate5m
+    expr: rate(ifHCInOctets{ifAlias=~"edge.*|core.*"}[5m])
+
+  # Alert for any instance that is unreachable for >2 minutes.
+  - alert: Instance Down
+    expr: up{instance=~"core.*|agg.*|dist.*|sw.*|isw.*|cs.*|pdu.*"} == 0
+    for: 2m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+
+  - alert: ICMP Probe Down - Network
+    expr: probe_success{instance=~"core.*|agg.*|dist.*|sw.*|isw.*|pdu.*"} != 1
+    for: 1m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Device {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+
+  - alert: ICMP Probe Down - Network
+    expr: probe_success{instance=~"cs.*"} != 1
+    for: 5m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Device {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+
+  - alert: Host Up Time
+    expr: sysUpTime > 7776000000
+    for: 2m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Instance {{ $labels.instance }} Uptime is more"
+      description: "{{ $labels.instance }} device is UP for more than 2.5 Years"
+
+  - alert: Interface Down
+    expr: delta(ifOperStatus[15m]) != 0
+    for: 2m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "Port {{ $labels.ifDescr }} changed status"
+      description: "Port {{ $labels.ifDescr }} went up or down in the past 15 Minutes"
+
+  - alert: Host CPU Utilisation Juniper
+    expr: jnxOperatingCPU  > 60
+    for: 10m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High CPU utilisation detected for instance {{ $labels.instance
+        }} in POP: {{ $labels.dc }}, the utilisation is currently:  {{ $value }}%'
+      summary: CPU Utilisation Alert
+
+  - alert: Host ISR Utilisation Juniper
+    expr: jnxOperatingISR  > 60
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High ISR utilisation detected for instance {{ $labels.instance
+        }} in POP: {{ $labels.dc }}, the utilisation is currently:  {{ $value }}%'
+      summary: High Interupt Utilisation Alert
+
+  - alert: High Buffer Utilisation
+    expr: jnxOperatingBuffer > 75
+    for: 10m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High Buffer Utiliaztion detected for instance {{ $labels.instance }}
+         - {{ $labels.jnxOperatingDescr }}, the utilisation is currently: {{ $value }}%'
+      summary: High Buffer utilization Alert
+
+  - alert: High Heap Utilisation
+    expr: jnxOperatingHeap > 75
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High Heap Utiliaztion detected for instance {{ $labels.instance }}
+         - {{ $labels.jnxOperatingDescr }}, the utilisation is currently: {{ $value }}%'
+      summary: High Heap utilization Alert
+
+  - alert: High CPU Load Utilisation
+    expr: jnxOperating1MinLoadAvg > 75
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High CPU Load Utiliaztion detected for instance {{ $labels.instance }}
+         - {{ $labels.jnxOperatingDescr }}, the utilisation is currently: {{ $value }}%'
+      summary: High CPU Load utilization Alert
+
+  - alert: Host CPU Utilisation Cisco
+    expr: cpmCPUTotal1minRev  > 70
+    for: 4m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High CPU utilisation detected for instance {{ $labels.instance
+        }} in POP: {{ $labels.dc }}, the utilisation is currently:  {{ $value }}%'
+      summary: CPU Utilisation Alert
+
+  - alert: High Memory Utisation Cisco
+    expr: 100 * (ciscoMemoryPoolUsed / (ciscoMemoryPoolUsed + ciscoMemoryPoolFree) ) > 85 and ciscoMemoryPoolUsed{ciscoMemoryPoolName!="lsmpi_io"}
+    for: 4m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High Memory utilisation detected for instance {{ $labels.instance
+        }} for {{ $labels.ciscoMemoryPoolName }}, the utilisation is currently:  {{ $value }}%'
+      summary: Memory Utilisation Alert
+
+  - alert: High Temperature
+    expr: ciscoEnvMonTemperatureStatusValue > 60
+    for: 4m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Temperature Noticed on {{ $labels.instance}}"
+      description: "High Temperature Noticed on {{ $labels.instance}} for {{ $labels.ciscoEnvMonTemperatureStatusDescr }}"
+
+  - alert: Fan Status
+    expr: ciscoEnvMonFanState != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Fan Not working for {{ $labels.instance}} - {{ $labels.ciscoEnvMonFanStatusDescr }}"
+      description: "Fan stopped working on {{ $labels.instance}} - {{ $labels.ciscoEnvMonFanStatusDescr }}"
+
+  - alert: Power Supply Status
+    expr: ciscoEnvMonSupplyState != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Power Supply Not working for {{ $labels.instance}} - {{ $labels.ciscoEnvMonSupplyStatusIndex }}"
+      description: "Power Supply stopped working on {{ $labels.instance}} - {{ $labels.ciscoEnvMonSupplyStatusIndex }}"
+
+  - alert: Stack Ring Status
+    expr: cswRingRedundant  != true
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Stack ring failed for  {{ $labels.instance }}"
+      description: "Stack ring failed for {{ $labels.instance }}, Stack connectivity down"
+
+  - alert: Stack Port Status
+    expr: cswStackPortOperStatus  != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Stack port down on {{ $labels.instance}}"
+      description: "One of the Stack port on {{ $labels.instance}}, with ifIndex{{ $labels.ifIndex }} is down"
+
+  - alert: ASR Hardware Status
+    expr: entSensorStatus  != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "{{ $labels.instance}} hardware status not ok"
+      description: "Device {{ $labels.instance}}, hardware { $labels.entPhysicalName }} is down or not operational"
+
+  - alert: ASR Temperature Status
+    expr: entSensorValue{entPhysicalName=~"Temp:.*"} > 50
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "{{ $labels.instance}} Temperature status is High"
+      description: "High Temperature noticed on  {{ $labels.instance}}, hardware { $labels.entPhysicalName }}"
+
+  - alert: High Memory Utisation Cisco
+    expr: 100 * (cpmCPUMemoryUsed  / (cpmCPUMemoryUsed + cpmCPUMemoryFree) ) > 95
+    for: 4m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      description: 'High Memory utilisation detected for instance {{ $labels.instance
+        }} for {{ $labels.ciscoMemoryPoolName }}, the utilisation is currently:  {{ $value }}%'
+      summary: Memory Utilisation Alert
+
+  # Alert for any latency which is more than 25% of actual latency.
+  - alert: Juniper RPM HIGH Latency
+    expr: ((jnxPingLastTestResultAvgRttUs > jnxPingLastTestResultAvgRttUs offset 1h * 1.25 ) and jnxPingLastTestResultAvgRttUs offset 1h  > 40000 ) or ((jnxPingLastTestResultAvgRttUs > jnxPingLastTestResultAvgRttUs offset 1h * 1.80 ) and jnxPingLastTestResultAvgRttUs offset 1h  < 40000  and  jnxPingLastTestResultAvgRttUs offset 1h  > 20000 ) or ((jnxPingLastTestResultAvgRttUs > jnxPingLastTestResultAvgRttUs offset 1h * 3.50 ) and jnxPingLastTestResultAvgRttUs offset 1h  < 20000 and jnxPingLastTestResultAvgRttUs offset 1h  > 5000 )
+    for: 4m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High latency on {{ $labels.instance }} - {{ $labels.jnxPingCtlTestName }}"
+      description: "{{ $labels.instance }} - {{ $labels.jnxPingCtlTestName }} has a higher latency for more than 5m (current value: {{ $value }}ms)"
+
+
+  - alert: Cisco IPsla HIGH Latency
+    expr: ((rttMonLatestRttOperCompletionTime > rttMonLatestRttOperCompletionTime offset 1h * 1.25 ) and rttMonLatestRttOperCompletionTime offset 1h  > 40 ) or ((rttMonLatestRttOperCompletionTime > rttMonLatestRttOperCompletionTime offset 1h * 1.80 ) and rttMonLatestRttOperCompletionTime offset 1h  < 40  and  rttMonLatestRttOperCompletionTime offset 1h  > 20 ) or ((rttMonLatestRttOperCompletionTime > rttMonLatestRttOperCompletionTime offset 1h * 3.50 ) and rttMonLatestRttOperCompletionTime offset 1h  < 20 and rttMonLatestRttOperCompletionTime offset 1h  > 5 )
+    for: 4m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High latency on {{ $labels.instance }} - {{ $labels.rttMonCtrlAdminTag }}"
+      description: "{{ $labels.instance }} - {{ $labels.rttMonCtrlAdminTag }} has a higher latency for more than 5m (current value: {{ $value }}s)"
+
+  - alert: Juniper HIGH Packet loss
+    expr: (jnxPingLastTestResultSentProbes - jnxPingLastTestResultProbeResponses) > 4
+    for: 4m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High Packet loss on {{ $labels.jnxPingCtlTestName }}"
+      description: "{{ $labels.instance }} - {{ $labels.jnxPingCtlTestName }} has a higher packet loss for more than 4m (current value: {{ $value }})"
+
+  - alert: Cisco HIGH Packetloss
+    expr: rttMonLatestJitterOperPacketLossDS > 4 or rttMonLatestJitterOperPacketLossSD > 4
+    for: 4m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High Packet loss on {{ $labels.rttMonCtrlAdminTag }}"
+      description: "{{ $labels.instance }} - {{ $labels.rttMonCtrlAdminTag }} has a higher packet loss for more than 4m (current value: {{ $value }})"
+
+
+  - alert: Interface Input Utilisation
+    expr: (rate(ifHCInOctets[4m]) / ifHighSpeed) * 0.0008 >= 75 and ifHighSpeed != 0
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.ifAlias }} input direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Traffic input utilization is above 75% of link bandwidth  with (current value: {{ $value }})"
+
+  - alert: Interface Output Utilisation
+    expr: (rate(ifHCOutOctets[4m]) / ifHighSpeed) * 0.0008 >= 75 and ifHighSpeed != 0
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.ifAlias }} output direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Traffic output utilization is above 75% of link bandwidth with (current value: {{ $value }})"
+
+
+  - alert: Edge link Interface Input Utilisation
+    expr: (rate(ifHCInOctets{ifAlias=~"pl3.*"}[4m]) / ifHighSpeed) * 0.0008 >= 50 and ifHighSpeed != 0
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.ifAlias }} input direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Traffic input utilization is above 50% of link bandwidth  with (current value: {{ $value }})"
+
+  - alert: Edge link Interface Output Utilisation
+    expr: (rate(ifHCInOctets{ifAlias=~"pl3.*"}[4m]) / ifHighSpeed) * 0.0008 >= 50 and ifHighSpeed != 0
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.ifAlias }} output direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Traffic output utilization is above 50% of link bandwidth with (current value: {{ $value }})"
+
+  - alert: Interface Input Utilisation Historical
+    expr: rate(ifHCInOctets[4m]) > rate(ifHCInOctets[4m] offset 1h) * 2.50 > 25000000
+    for: 12m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.instance }} {{ $labels.ifAlias }} input direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} inbound Traffic  utilization is above 250% compared to historical baseline (current value: {{ $value }})"
+
+  - alert: Interface Output Utilisation Historical
+    expr: rate(ifHCOutOctets[4m]) > rate(ifHCOutOctets[4m] offset 1h) * 2.50 > 25000000
+    for: 12m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "High Traffic utilisation observed on {{ $labels.instance }} {{ $labels.ifAlias }} output direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} outbound Traffic utilization is above 250% compared to historical baseline (current value: {{ $value }})"
+
+  - alert: Interface Input Anomaly
+    expr: rate(ifHCOutOctets[4m]) > avg by (ifAlias) (rate(ifHCOutOctets[4m] offset 1w)) + 2 * stddev by (ifAlias) (rate(ifHCOutOctets[4m] offset 1w))
+    for: 12m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: Traffic Anomaly Detected
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Traffic anomaly Detected"
+
+
+  - alert: Interface In Errors
+    expr: rate(ifInErrors[4m]) > 4
+    for: 12m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Interface erros on {{ $labels.ifAlias }} input direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Interface in errors are above 4 packets with (current value: {{ $value }})"
+
+  - alert: Interface Out Errors
+    expr: rate(ifOutErrors[4m]) > 4
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Interface erros on {{ $labels.ifAlias }} output direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Interface out errors are above 4 packets with (current value: {{ $value }})"
+
+  - alert: Interface Output Discards
+    expr: rate(ifOutDiscards[4m]) > 4
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Interface erros on {{ $labels.ifAlias }} output direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Interface out errors are above 4 packets with (current value: {{ $value }})"
+
+  - alert: Interface In Discards
+    expr: rate(ifInDiscards[4m]) > 4
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Interface erros on {{ $labels.ifAlias }} input direction"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} Interface out errors are above 4 packets with (current value: {{ $value }})"
+
+#  - alert: InterfaceSpeed
+#    expr: ifHighSpeed < 1000
+#    for: 5m
+#    annotations:
+#      summary: "Interface Speed on {{ $labels.ifAlias }} is less"
+#      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} is less than 1Gbps (current value: {{ $value }})"
+
+  - alert: Interface Inbound Pkts/sec
+    expr: rate(ifHCInUcastPkts[4m]) > rate(ifHCInUcastPkts[4m] offset 1h ) * 2.50 > 100000
+    for: 6m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "Interface Pkts/Sec on {{ $labels.ifAlias }} is High"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} is having very Hihg Pkts/Sec value with (current value: {{ $value }})"
+
+  - alert: Interface Outbound Pkts/sec
+    expr: rate(ifHCOutUcastPkts[4m]) > rate(ifHCOutUcastPkts[4m] offset 1h) * 2.50 > 100000
+    for: 6m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "Interface Pkts/Sec on {{ $labels.ifAlias }} is High"
+      description: "{{ $labels.instance }} - {{ $labels.ifAlias }} is having very Hihg Pkts/Sec value with (current value: {{ $value }})"
+
+  - alert: High Temperature
+    expr: jnxOperatingTemp > 70
+    for: 6m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "High Temperature Noticed on {{ $labels.instance}}"
+      description: "High Temperature Noticed on {{ $labels.instance}}"
+
+  - alert: Agg BGP Status
+    expr: bgpPeerState{instance=~"agg.*|rtr.*"} != 6 and  bgpPeerState{instance=~"agg.*|rtr.*"} != 1
+    for: 3m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "BGP Peer down on {{ $labels.instance}}"
+      description: "BGP Peer down on  {{ $labels.instance}} with Peer address {{ $labels.bgpPeerRemoteAddr }}"
+
+
+  - alert: Core BGP Status
+    expr: bgpPeerState{instance=~"core.*"} != 6 and  bgpPeerState{instance=~"core.*"} != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "BGP Peer down on {{ $labels.instance}}"
+      description: "BGP Peer down on  {{ $labels.instance}} with Peer address {{ $labels.bgpPeerRemoteAddr }}"
+
+  - alert: BGP Received Prefixes
+    expr: (delta(jnxBgpM2PrefixInPrefixes[15m]) > jnxBgpM2PrefixInPrefixes offset 15m * 0.3) or (delta(jnxBgpM2PrefixInPrefixes[15m]) < jnxBgpM2PrefixInPrefixes  offset 15m * -0.3)
+    for: 3m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "BGP Received prefix  {{ $labels.instance }} is Higher"
+      description: "BGP Received prefix on {{ $labels.instance }} - {{ $labels.jnxBgpM2PeerRemoteAs }} is Hihger or Lower than usual with the current value of {{ $value }}"
+
+  - alert: BGP Advertised Prefixes
+    expr: (delta(jnxBgpM2PrefixOutPrefixes[15m]) > jnxBgpM2PrefixOutPrefixes offset 15m * 0.3 ) or (delta(jnxBgpM2PrefixOutPrefixes[15m]) < jnxBgpM2PrefixOutPrefixes  offset 15m * -0.3)
+    for: 3m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "BGP Advertised prefix  {{ $labels.instance }} issue "
+      description: "BGP Advertised prefix on {{ $labels.instance }} - {{ $labels.jnxBgpM2PeerRemoteAs }} is not usual with the current value of {{ $value }}"
+
+  - alert: BGP Received Prefixes
+    expr: (delta(cbgpPeerAcceptedPrefixes[15m]) > cbgpPeerAcceptedPrefixes offset 15m * 0.3 ) or (delta(cbgpPeerAcceptedPrefixes[15m]) < cbgpPeerAcceptedPrefixes offset 15m * -0.3)
+    for: 3m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "BGP Received prefix  {{ $labels.instance }} is Higher"
+      description: "BGP Received prefix on {{ $labels.instance }} - {{ $labels.bgpPeerRemoteAddr }} is Higher or Lower than usual with the current value of {{ $value }}"
+
+  - alert: BGP Advertised Prefixes
+    expr: (delta(cbgpPeerAdvertisedPrefixes[15m]) > cbgpPeerAdvertisedPrefixes offset 15m * 0.3 ) or (delta(cbgpPeerAdvertisedPrefixes[15m]) < cbgpPeerAdvertisedPrefixes offset 15m * -0.3)
+    for: 3m
+    labels:
+      severity: info
+      project: netops
+    annotations:
+      summary: "BGP Advertised prefix  {{ $labels.instance }} issue "
+      description: "BGP Advertised prefix on {{ $labels.instance }} -  {{ $labels.bgpPeerRemoteAddr }} is not usual with the current value of {{ $value }}"
+
+  - alert: IKEv2 IPsec status
+    expr: jnxIpSecSaState != 1
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IKEv2 IPsec status down on  {{ $labels.instance }} "
+      description: "IKEv2 IPsec status down on {{ $labels.instance }} for customer {{ $labels.jnxSpSvcSetName }} with peer address {{ $labels.jnxIpSecTunRemoteGwAddr }} the current state is {{ $value }}"
+
+  - alert: IKEv2 Replay Drop
+    expr: rate(jnxIpSecTunReplayDropPkts[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IKEv2 Replay Drop on  {{ $labels.instance }} "
+      description: "IKEv2 Replay drop on {{ $labels.instance }} for customer {{ $labels.jnxSpSvcSetName }} with peer address {{ $labels.jnxIpSecTunRemoteGwAddr }} the current drop value is {{ $value }}"
+
+  - alert: IKEv2 Decrypt Fails
+    expr: rate(jnxIpSecTunDecryptFails[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IKEv2 Decrypt Fails on  {{ $labels.instance }} "
+      description: "IKEv2 Decrypt fails on {{ $labels.instance }} for customer {{ $labels.jnxSpSvcSetName }} with peer address {{ $labels.jnxIpSecTunRemoteGwAddr }} the current Fail value is {{ $value }}"
+
+  - alert: IKEv2 IPsec Drop
+    expr: rate(jnxIpSecTunDroppedPkts[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IKEv2 IPsec Drop on  {{ $labels.instance }} "
+      description: "IKEv2 IPsec drop on {{ $labels.instance }} for customer {{ $labels.jnxSpSvcSetName }} with peer address {{ $labels.jnxIpSecTunRemoteGwAddr }} the current IPSec drop value is {{ $value }}"
+
+  #- alert: Juniper System Alarm
+  #  expr: jnxYellowAlarmCount > 1
+  #  for: 3m
+  #  labels:
+  #    severity: warning
+  #  annotations:
+  #    summary: "Device {{ $labels.instance }} has Yellow Alarm"
+  #    description: "Yellow alarm on {{ $labels.instance }} the current value is {{ $value }}"
+
+  - alert: Juniper Chassis Alarm
+    expr: jnxRedAlarmCount > 0
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "Device {{ $labels.instance }} has Red Alarm"
+      description: "Red alarm on {{ $labels.instance }} the current value is {{ $value }}"
+
+  - alert: IKEv2 IN Drops
+    expr: rate(cipSecGlobalInDrops[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IPsec Global In Drops on  {{ $labels.instance }} "
+      description: "Ipsec Global In drops on {{ $labels.instance }} the current value is {{ $value }}"
+
+  - alert: IKEv2 OUT Drops
+    expr: rate(cipSecGlobalInDrops[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IPsec Global In Drops on  {{ $labels.instance }} "
+      description: "Ipsec Global In drops on {{ $labels.instance }} the current value is {{ $value }}"
+
+  - alert: IKEv2 IN Replay Drops
+    expr: rate(cipSecGlobalInReplayDrops[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IPsec Replay Drop on  {{ $labels.instance }} "
+      description: "Ipsec Replay drops on {{ $labels.instance }} the current value is {{ $value }}"
+
+  - alert: IKEv2 Decrypt fails
+    expr: rate(cipSecGlobalInDecryptFails[4m]) > 4
+    for: 3m
+    labels:
+      severity: warning
+      project: netops
+    annotations:
+      summary: "IPsec Decyrpt fails on  {{ $labels.instance }} "
+      description: "Ipsec Decrypt fails on {{ $labels.instance }} the current value is {{ $value }}"
