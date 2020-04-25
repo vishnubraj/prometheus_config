@@ -150,6 +150,28 @@ modules:
      #   lookup:  hrStorageDescr
      #   drop_source_indexes: true
 
+
+  juniper_storage:
+    walk:
+      - 1.3.6.1.2.1.25.2.3.1.5 #hrStorageSize
+      - 1.3.6.1.2.1.25.2.3.1.6 #hrStorageUsed
+     # - jnxVirtualChassisPortOperStatus
+     # - 1.3.6.1.4.1.2636.3.40.1.4.1.2.1.4 #jnxVirtualChassisPortOperStatus
+    version: 3
+    max_repetitions: 10
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: AES
+      priv_password: testpriv
+
+    lookups:
+      - source_indexes: [hrStorageIndex]
+        lookup:  hrStorageDescr
+        drop_source_indexes: true
+
   rpm:
     walk:
       - 1.3.6.1.4.1.2636.3.7.1.5.1.16 #jnxPingLastTestResultPeakToPeakJitterRttUs
@@ -253,7 +275,7 @@ modules:
       username: testuser
       password: testpassword
       auth_protocol: MD5
-      priv_protocol: AES
+      priv_protocol: DES
       priv_password: testpriv
 
     lookups:
@@ -263,6 +285,117 @@ modules:
       - source_indexes: [cbgpPeer2Table]
         lookup: cbgpPeer2RemoteAs
         drop_source_indexes: true
+
+ciscoipsec:
+    walk:
+      - 1.3.6.1.4.1.9.9.171.1.3.1.10 #cipSecGlobalInDrops
+      - 1.3.6.1.4.1.9.9.171.1.3.1.11 #cipSecGlobalInReplayDrops
+      - 1.3.6.1.4.1.9.9.171.1.3.1.14 #cipSecGlobalInDecrypts
+      - 1.3.6.1.4.1.9.9.171.1.3.1.15 #cipSecGlobalInDecryptFails
+      - 1.3.6.1.4.1.9.9.171.1.3.1.17 #cipSecGlobalHcOutOctets
+      - 1.3.6.1.4.1.9.9.171.1.3.1.22 #cipSecGlobalOutPkts
+      - 1.3.6.1.4.1.9.9.171.1.3.1.23 #cipSecGlobalOutDrops
+      - 1.3.6.1.4.1.9.9.171.1.3.1.26 #cipSecGlobalOutEncrypts
+      - 1.3.6.1.4.1.9.9.171.1.3.1.27 #cipSecGlobalOutEncryptFails
+      - 1.3.6.1.4.1.9.9.171.1.3.1.4 #cipSecGlobalHcInOctets
+      - 1.3.6.1.4.1.9.9.171.1.3.1.9 #cipSecGlobalInPkts
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+    lookups:
+      - source_indexes: [cipSecTunIndex]
+        lookup: cipSecTunRemoteAddr
+        drop_source_indexes: true
+      - source_indexes: [cipSecTunIndex]
+        lookup: cipSecTunLocalAddr
+        drop_source_indexes: true
+
+  ciscopolicer:
+    walk:
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.3 #cbQosCMPrePolicyPkt64
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.6 #cbQosCMPrePolicyByte64
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.10 #cbQosCMPostPolicyByte64
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.14 #cbQosCMDropPkt64
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.17 #cbQosCMDropByte64
+      - 1.3.6.1.4.1.9.9.166.1.15.1.1.21 #cbQosCMNoBufDropPkt64
+      - 1.3.6.1.4.1.9.9.166.1.7.1.1.1 #cbQosCMName
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+    lookups:
+      - source_indexes: [cbQosPolicyIndex, cbQosParentObjectsIndex, cbQosObjectsIndex, cbQosIfIndex, cbQosConfigIndex, Ifindex]
+        lookup: cbQosCMName
+        drop_source_indexes: true
+      - source_indexes: [cbQosPolicyIndex, cbQosParentObjectsIndex, cbQosObjectsIndex, cbQosIfIndex, cbQosConfigIndex, Ifindex]
+        lookup: cbQosPolicyMapName
+        drop_source_indexes: true
+
+  juniperipsec:
+    walk:
+      - 1.3.6.1.4.1.2636.3.22.1.3.2.1.16 #jnxIpSecSaState
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.5  #jnxIpSecTunLocalGwAddr
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.7  #jnxIpSecTunRemoteGwAddr
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.2 #jnxIpSecRuleName
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.3 #jnxIpSecTermName
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.13 #jnxIpSecTunOutEncryptedBytes
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.14 #jnxIpSecTunOutEncryptedPkts
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.15 #jnxIpSecTunInDecryptedBytes
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.16 #jnxIpSecTunInDecryptedPkts
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.21 #jnxIpSecTunReplayDropPkts
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.24 #jnxIpSecTunDecryptFails
+      - 1.3.6.1.4.1.2636.3.22.1.3.1.1.27 #jnxIpSecTunDroppedPkts
+    version: 3
+    max_repetitions: 10
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+
+  juniperalarm:
+    walk:
+      - 1.3.6.1.4.1.2636.3.4.2.2.1 #jnxYellowAlarmState
+      - 1.3.6.1.4.1.2636.3.4.2.2.2 #jnxYellowAlarmCount
+      - 1.3.6.1.4.1.2636.3.4.2.3.1 #jnxRedAlarmState
+      - 1.3.6.1.4.1.2636.3.4.2.3.2 #jnxRedAlarmCount
+    max_repetitions: 15
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+
+  juniperpolicer:
+    walk:
+      - 1.3.6.1.4.1.2636.3.5.2.1.4 #jnxFWCounterPacketCount
+      - 1.3.6.1.4.1.2636.3.5.2.1.5 #jnxFWCounterByteCount
+      - 1.3.6.1.4.1.2636.3.5.2.1.6 #jnxFWCounterDisplayFilterName
+      - 1.3.6.1.4.1.2636.3.5.2.1.7 #jnxFWCounterDisplayName
+    max_repetitions: 15
+    version: 3
+    auth:
+      security_level: authPriv
+      username: testuser
+      password: testpassword
+      auth_protocol: MD5
+      priv_protocol: DES
+      priv_password: testpriv
+
 
   horizontalpdu:
     walk:
@@ -292,6 +425,7 @@ modules:
 #      - 1.3.6.1.4.1.1718.4.1.3.1.1 #st4InputCordActivePowerHysteresis
 #      - 1.3.6.1.4.1.1718.4.1.3.1.2 #st4InputCordApparentPowerHysteresis
 #      - 1.3.6.1.4.1.1718.4.1.3.1.3 #st4InputCordPowerFactorHysteresis
+      - 1.3.6.1.4.1.1718.4.1.1.1.2 #st4SystemLocation
       - 1.3.6.1.4.1.1718.4.1.3.3.1.3 #st4InputCordActivePower #watts
       - 1.3.6.1.4.1.1718.4.1.3.3.1.5 #st4InputCordApparentPowe #Volts-amps
       - 1.3.6.1.4.1.1718.4.1.3.3.1.7 #st4InputCordPowerUtilized
@@ -303,6 +437,7 @@ modules:
       - 1.3.6.1.4.1.1718.4.1.5.3.1.6 #st4PhaseCurrent
       - 1.3.6.1.4.1.1718.4.1.5.3.1.8 #st4PhaseActivePower
       - 1.3.6.1.4.1.1718.4.1.5.3.1.9 #st4PhaseApparentPower
+      - 1.3.6.1.4.1.1718.4.1.9.3.1.1 #st4TempSensorValue
     version: 3
     auth:
       security_level: authPriv
